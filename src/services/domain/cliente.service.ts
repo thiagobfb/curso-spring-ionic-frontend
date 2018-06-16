@@ -3,11 +3,15 @@ import { HttpClient } from "@angular/common/http";
 import { API_CONFIG } from "../../config/api.config";
 import { ClienteDTO } from "../../models/cliente.dto";
 import { StorageService } from "../storage.service";
+import { ImageUtilService } from "../image-util.service";
 
 @Injectable()
 export class ClienteService {
 
-    constructor(public http: HttpClient, public storage: StorageService) {
+    constructor(
+        public http: HttpClient,
+        public storage: StorageService,
+        public imageUtilService: ImageUtilService) {
     }
 
     findById(id: string) {
@@ -20,16 +24,30 @@ export class ClienteService {
 
     getImageFromBucket(id: string) {
         let url = `${API_CONFIG.bucketBaseUrl}/cp${id}.jpg`;
-        return this.http.get(url, {responseType: 'blob'});
+        return this.http.get(url, { responseType: 'blob' });
     }
 
     insert(obj: ClienteDTO) {
-        return this.http.post(`${API_CONFIG.baseUrl}/clientes`, 
-        obj, 
-        {
-            observe: 'response',
-            responseType: 'text'
-        }
+        return this.http.post(`${API_CONFIG.baseUrl}/clientes`,
+            obj,
+            {
+                observe: 'response',
+                responseType: 'text'
+            }
+        );
+    }
+
+    uploadImage(picture) {
+        let pictureBlob = this.imageUtilService.dataUriToBlob(picture);
+        let formData: FormData = new FormData();
+        formData.set('file', pictureBlob, 'file.png');
+
+        return this.http.post(`${API_CONFIG.baseUrl}/clientes/picture`,
+            formData,
+            {
+                observe: 'response',
+                responseType: 'text'
+            }
         );
     }
 }
